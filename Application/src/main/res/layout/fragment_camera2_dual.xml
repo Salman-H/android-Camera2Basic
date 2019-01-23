@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+Salman Hashmi (mail@salmanhashmi.me)
+mail@salmanhashmi.me
+@version 1.1
+-->
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".CameraActivity">
+
+    <TextureView
+        android:id="@+id/texture1"
+        android:layout_width="238dp"
+        android:layout_height="219dp"
+        android:layout_marginStart="195dp"
+        android:layout_marginTop="33dp"
+        android:layout_marginEnd="197dp"
+        android:layout_marginBottom="31dp"
+        app:layout_constraintBottom_toTopOf="@+id/toggle1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/cam0TitleView"
+        app:layout_constraintTop_toTopOf="@+id/datetimeView" />
+
+    <TextView
+        android:id="@+id/titleView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="27dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/titleView"
+        android:textColor="#fff"
+        android:textSize="26sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextClock
+        android:id="@+id/datetimeView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="51dp"
+        android:text="@string/datetimeView"
+        android:textColor="#fff"
+        android:textSize="22sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:format12Hour="@null"
+        android:format24Hour="yyyy-MM-dd HH:mm:ss" />
+
+    <Button
+        android:id="@+id/toggle0"
+        android:layout_width="102dp"
+        android:layout_height="59dp"
+        android:layout_marginStart="46dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/cam0ToggleButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/cam0TitleView" />
+
+    <Button
+        android:id="@+id/toggle1"
+        android:layout_width="102dp"
+        android:layout_height="59dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/cam1ToggleButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/cam1TitleView" />
+
+    <Button
+        android:id="@+id/capture"
+        android:layout_width="102dp"
+        android:layout_height="59dp"
+        android:layout_marginEnd="60dp"
+        android:layout_marginBottom="16dp"
+        android:text="Capture"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextureView
+        android:id="@+id/texture0"
+        android:layout_width="238dp"
+        android:layout_height="219dp"
+        android:layout_marginStart="27dp"
+        android:layout_marginEnd="23dp"
+        app:layout_constraintBottom_toTopOf="@+id/cam0TitleView"
+        app:layout_constraintEnd_toStartOf="@+id/texture1"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/texture1"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/cam0TitleView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="64dp"
+        android:layout_marginBottom="20dp"
+        android:text="@string/cam0TitleView"
+        android:textColor="#fff"
+        android:textSize="21sp"
+        app:layout_constraintBottom_toTopOf="@+id/toggle0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/cam1TitleView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="48dp"
+        android:layout_marginBottom="20dp"
+        android:text="@string/cam1TitleView"
+        android:textColor="#fff"
+        android:textSize="21sp"
+        app:layout_constraintBottom_toTopOf="@+id/toggle1"
+        app:layout_constraintStart_toStartOf="@+id/texture1" />
+
+    <TextView
+        android:id="@+id/cam0StatusView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="9dp"
+        android:text="@string/cam0StatusView"
+        android:textColor="#fff"
+        android:textSize="21sp"
+        app:layout_constraintStart_toEndOf="@+id/cam0TitleView"
+        app:layout_constraintTop_toBottomOf="@+id/texture0" />
+
+    <TextView
+        android:id="@+id/cam1StatusView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="1dp"
+        android:text="@string/cam1StatusView"
+        android:textColor="#fff"
+        android:textSize="21sp"
+        app:layout_constraintStart_toEndOf="@+id/cam1TitleView"
+        app:layout_constraintTop_toBottomOf="@+id/texture1" />
+
+</android.support.constraint.ConstraintLayout>
