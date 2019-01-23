@@ -12,10 +12,20 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
+
+ Author: Salman Hashmi
 -->
 <resources>
-    <string name="picture">Picture</string>
-    <string name="description_info">Info</string>
+    <string name="titleView">Camera2 Test</string>
+    <string name="datetimeView">Current datetime</string>
+    <string name="cam0TitleView">Cam 0: </string>
+    <string name="cam0StatusView">off</string>
+    <string name="cam1TitleView">Cam 1: </string>
+    <string name="cam1StatusView">off</string>
+
+    <string name="cam0ToggleButton">Stop</string>
+    <string name="cam1ToggleButton">Start</string>
+    <string name="captureButton">Capture</string>
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
 </resources>
