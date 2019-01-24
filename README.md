@@ -1,9 +1,9 @@
 
-Android Camera2Basic Sample
+Android Camera2Dual Sample
 ===================================
 
 Displays images from 2 camera sensors using camera2 API. Allows both cameras
-to run and capture images simultaneously.
+to run and capture images simultaneously. See `Camera2FragmentDual.java`
 
 Originated from:
 https://github.com/googlesamples/android-Camera2Basic
@@ -20,6 +20,14 @@ Features
 - Tap the Capture button to save the current live image(s) to the picture library (include the
   date+time in the file name)
 - Display the frames-per-second of the live camera(s) (pending)
+
+Screenshots
+-------------
+
+<img src="screenshots/cam0.png" alt="Screenshot"/>
+<img src="screenshots/cam0-1-a.png" alt="Screenshot"/>
+<img src="screenshots/cam0-1-b.png" alt="Screenshot"/>
+<img src="screenshots/cam0-1-c.png" alt="Screenshot"/>
 
 Assumptions
 -------------
@@ -48,13 +56,6 @@ Pre-requisites
 - Android Build Tools v27.0.2
 - Android Support Repository
 
-Screenshots
--------------
-
-<img src="screenshots/cam0.png" alt="Screenshot"/>
-<img src="screenshots/cam0-1-a.png" alt="Screenshot"/>
-<img src="screenshots/cam0-1-b.png" alt="Screenshot"/>
-<img src="screenshots/cam0-1-c.png" alt="Screenshot"/>
 
 Getting Started
 ---------------
