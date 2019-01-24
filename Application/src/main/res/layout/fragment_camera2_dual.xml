@@ -18,7 +18,7 @@ mail@salmanhashmi.me
         android:layout_marginTop="33dp"
         android:layout_marginEnd="197dp"
         android:layout_marginBottom="31dp"
-        app:layout_constraintBottom_toTopOf="@+id/toggle1"
+        app:layout_constraintBottom_toTopOf="@+id/cam1ToggleButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/cam0TitleView"
         app:layout_constraintTop_toTopOf="@+id/datetimeView" />
@@ -50,7 +50,7 @@ mail@salmanhashmi.me
         android:format24Hour="yyyy-MM-dd HH:mm:ss" />
 
     <Button
-        android:id="@+id/toggle0"
+        android:id="@+id/cam0ToggleButton"
         android:layout_width="102dp"
         android:layout_height="59dp"
         android:layout_marginStart="46dp"
@@ -60,7 +60,7 @@ mail@salmanhashmi.me
         app:layout_constraintStart_toStartOf="@+id/cam0TitleView" />
 
     <Button
-        android:id="@+id/toggle1"
+        android:id="@+id/cam1ToggleButton"
         android:layout_width="102dp"
         android:layout_height="59dp"
         android:layout_marginStart="24dp"
@@ -101,7 +101,7 @@ mail@salmanhashmi.me
         android:text="@string/cam0TitleView"
         android:textColor="#fff"
         android:textSize="21sp"
-        app:layout_constraintBottom_toTopOf="@+id/toggle0"
+        app:layout_constraintBottom_toTopOf="@+id/cam0ToggleButton"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
@@ -113,7 +113,7 @@ mail@salmanhashmi.me
         android:text="@string/cam1TitleView"
         android:textColor="#fff"
         android:textSize="21sp"
-        app:layout_constraintBottom_toTopOf="@+id/toggle1"
+        app:layout_constraintBottom_toTopOf="@+id/cam1ToggleButton"
         app:layout_constraintStart_toStartOf="@+id/texture1" />
 
     <TextView
