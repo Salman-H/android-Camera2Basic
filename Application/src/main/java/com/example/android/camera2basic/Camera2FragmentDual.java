@@ -1,16 +1,23 @@
 package com.example.android.camera2basic;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 
 public class Camera2FragmentDual extends Fragment {
@@ -21,6 +28,11 @@ public class Camera2FragmentDual extends Fragment {
     // Hardcoded for now. Can be obtained from android.hardware.camera2.CameraCharacteristics
     private static final String CAM_0_ID = "0";
     private static final String CAM_1_ID = "1";
+
+    private Semaphore mCameraOpenCloseLock0 = new Semaphore(1);
+    private Semaphore mCameraOpenCloseLock1 = new Semaphore(1);
+
+    private Map<String, CameraDevice> cameraDeviceMap = new HashMap<>();
 
     private CameraManager mCameraManager;
 
@@ -57,6 +69,39 @@ public class Camera2FragmentDual extends Fragment {
             }
         };
     }
+
+    private CameraDevice.StateCallback stateCallback0 = initSateCallback(CAM_0_ID);
+    private CameraDevice.StateCallback stateCallback1 = initSateCallback(CAM_1_ID);
+    
+    private CameraDevice.StateCallback initSateCallback(final String camId) {
+        final Semaphore camLock = camId.equals(CAM_0_ID)
+                ? mCameraOpenCloseLock0 : mCameraOpenCloseLock1;
+        return new CameraDevice.StateCallback() {
+            @Override
+            public void onOpened(@NonNull CameraDevice cameraDevice) {
+                camLock.release();
+                cameraDeviceMap.put(camId, cameraDevice);
+                if (camId.equals(CAM_0_ID)) createCameraPreviewSession(camId); // don't call cam1 on startup
+            }
+            @Override
+            public void onDisconnected(@NonNull CameraDevice cameraDevice) {
+                camLock.release();
+                cameraDevice.close();
+                cameraDeviceMap.put(camId, null);
+            }
+            @Override
+            public void onError(@NonNull CameraDevice cameraDevice, int error) {
+                camLock.release();
+                cameraDevice.close();
+                cameraDeviceMap.put(camId, null);
+                Activity activity = getActivity();
+                if (null != activity) {
+                    activity.finish();
+                }
+            }
+        };
+    }
+
 
     public static Camera2FragmentDual newInstance() {
         return new Camera2FragmentDual();
