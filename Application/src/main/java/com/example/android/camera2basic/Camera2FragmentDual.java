@@ -5,13 +5,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.TextureView;
 import android.view.View;
@@ -57,6 +61,8 @@ public class Camera2FragmentDual extends Fragment
     private boolean mCam0Running;
     private boolean mCam1Running;
 
+    private Size mPreviewSize;
+
     private void requestCameraPermission() {
         if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
             new Camera2BasicFragment.ConfirmationDialog().show(getChildFragmentManager(), FRAGMENT_DIALOG);
@@ -74,6 +80,7 @@ public class Camera2FragmentDual extends Fragment
             public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture,
                                                   int width, int height) {
                 mCameraManager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
+                setUpCamera(camId, width, height);
                 openCamera(camId ,width, height);
             }
             @Override
@@ -173,6 +180,40 @@ public class Camera2FragmentDual extends Fragment
                 getActivity().finish();
             }
         }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private void setUpCamera(String cameraId, int width, int height) {
+        try {
+            CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(cameraId);
+            StreamConfigurationMap map = characteristics.get(
+                    CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class), width, height);
+            return;
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        catch (NullPointerException e) {
+            // Currently an NPE is thrown when the Camera2API is used but not supported on the
+            // device this code runs.
+            Camera2BasicFragment.ErrorDialog.newInstance(getString(R.string.camera_error))
+                    .show(getChildFragmentManager(), FRAGMENT_DIALOG);
+        }
+    }
+
+    private Size chooseOptimalSize(Size[] outputSizes, int width, int height) {
+        double preferredRatio = height / (double) width;
+        Size currentOptimalSize = outputSizes[0];
+        double currentOptimalRatio = currentOptimalSize.getWidth() / (double) currentOptimalSize.getHeight();
+        for (Size currentSize : outputSizes) {
+            double currentRatio = currentSize.getWidth() / (double) currentSize.getHeight();
+            if (Math.abs(preferredRatio - currentRatio) <
+                    Math.abs(preferredRatio - currentOptimalRatio)) {
+                currentOptimalSize = currentSize;
+                currentOptimalRatio = currentRatio;
+            }
+        }
+        return currentOptimalSize;
     }
 
 }
