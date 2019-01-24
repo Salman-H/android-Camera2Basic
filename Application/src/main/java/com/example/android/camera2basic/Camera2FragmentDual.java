@@ -226,7 +226,7 @@ public class Camera2FragmentDual extends Fragment
 
     private void configureTransform(String camId, int viewWidth, int viewHeight) {
         TextureView textureView;
-        textureView = camId.equals("0") ? mTextureView0 : mTextureView1;
+        textureView = camId.equals(CAM_0_ID) ? mTextureView0 : mTextureView1;
         Activity activity = getActivity();
         if (null == textureView || null == mPreviewSize || null == activity) {
             return;
@@ -259,7 +259,7 @@ public class Camera2FragmentDual extends Fragment
         }
         try
         {
-            if (camId.equals("0")) {
+            if (camId.equals(CAM_0_ID)) {
                 if (!mCameraOpenCloseLock0.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                     throw new RuntimeException("Time out waiting to lock camera opening.");
                 }
@@ -269,7 +269,7 @@ public class Camera2FragmentDual extends Fragment
                 if (!mCameraOpenCloseLock1.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                     throw new RuntimeException("Time out waiting to lock camera opening.");
                 }
-                mCameraManager.openCamera(camId, mStateCallback0, mBackgroundHandler);
+                mCameraManager.openCamera(camId, mStateCallback1, mBackgroundHandler);
             }
         }
         catch (CameraAccessException e) {
