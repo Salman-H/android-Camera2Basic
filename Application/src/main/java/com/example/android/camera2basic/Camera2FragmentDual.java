@@ -88,7 +88,7 @@ public class Camera2FragmentDual extends Fragment
                                                   int width, int height) {
                 mCameraManager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
                 setUpCamera(camId, width, height);
-                openCamera(camId ,width, height);
+                openCamera(camId);
             }
             @Override
             public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
@@ -105,8 +105,8 @@ public class Camera2FragmentDual extends Fragment
         };
     }
 
-    private CameraDevice.StateCallback stateCallback0 = initSateCallback(CAM_0_ID);
-    private CameraDevice.StateCallback stateCallback1 = initSateCallback(CAM_1_ID);
+    private CameraDevice.StateCallback mStateCallback0 = initSateCallback(CAM_0_ID);
+    private CameraDevice.StateCallback mStateCallback1 = initSateCallback(CAM_1_ID);
 
     private CameraDevice.StateCallback initSateCallback(final String camId) {
         final Semaphore camLock = camId.equals(CAM_0_ID)
@@ -251,6 +251,33 @@ public class Camera2FragmentDual extends Fragment
         textureView.setTransform(matrix);
     }
 
-
+    private void openCamera(String camId) {
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestCameraPermission();
+            return;
+        }
+        try
+        {
+            if (camId.equals("0")) {
+                if (!mCameraOpenCloseLock0.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
+                    throw new RuntimeException("Time out waiting to lock camera opening.");
+                }
+                mCameraManager.openCamera(camId, mStateCallback0, mBackgroundHandler);
+            }
+            else {
+                if (!mCameraOpenCloseLock1.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
+                    throw new RuntimeException("Time out waiting to lock camera opening.");
+                }
+                mCameraManager.openCamera(camId, mStateCallback0, mBackgroundHandler);
+            }
+        }
+        catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted while trying to lock camera opening.", e);
+        }
+    }
 
 }
