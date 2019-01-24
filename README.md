@@ -2,42 +2,44 @@
 Android Camera2Basic Sample
 ===================================
 
-This sample demonstrates how to use basic functionalities of Camera2
-API. You can learn how to iterate through characteristics of all the
-cameras attached to the device, display a camera preview, and take
-pictures.
+Displays images from 2 camera sensors using camera2 API. Allows both cameras
+to run and capture images simultaneously.
 
-Introduction
+Originated from:
+https://github.com/googlesamples/android-Camera2Basic
+
+
+Features
 ------------
 
-The [Camera2 API][1] provides an interface to individual camera
-devices connected to an Android device. It replaces the deprecated
-Camera class.
+- On startup, start only Cam 0
+- Tap on the Cam 0 button to start (or stop) Cam 0
+- Tap on the Cam 1 button to start (or stop) Cam 1
+- Freeze the image when a camera is stopped
+- Allow both cameras to run simultaneously
+- Tap the Capture button to save the current live image(s) to the picture library (include the
+  date+time in the file name)
+- Display the frames-per-second of the live camera(s) (pending)
 
-Use [getCameraIdList][2] to get a list of all the available
-cameras. You can then use [getCameraCharacteristics][3] and find the
-best camera that suits your need (front/rear facing, resolution etc).
+Assumptions
+-------------
 
-Create an instance of [CameraDevice.StateCallback][4] and open a
-camera. It is ready to start camera preview when the camera is opened.
+- The two cameras are front and back cameras on a smartphone with camera IDs 0 and 1.
+    (Ids can be extracted using android.hardware.camera2.CameraCharacteristics)
+- App will only be used in landscape mode
+- Saved pictures will only be viewed in landscape mode
+- User has enabled 24 hour format in settings for live datetime to display in 24 hour format
+- App is only tested on a pixel 2 hardware device
 
-This sample uses TextureView to show the camera preview. Create a
-[CameraCaptureSession][5] and set a repeating [CaptureRequest][6] to it.
+Notes
+-----------
 
-Still image capture takes several steps. First, you need to lock the
-focus of the camera by updating the CaptureRequest for the camera
-preview. Then, in a similar way, you need to run a precapture
-sequence. After that, it is ready to capture a picture. Create a new
-CaptureRequest and call [capture][7]. Don't forget to unlock the focus
-when you are done.
-
-[1]: https://developer.android.com/reference/android/hardware/camera2/package-summary.html
-[2]: https://developer.android.com/reference/android/hardware/camera2/CameraManager.html#getCameraIdList()
-[3]: https://developer.android.com/reference/android/hardware/camera2/CameraManager.html#getCameraCharacteristics(java.lang.String)
-[4]: https://developer.android.com/reference/android/hardware/camera2/CameraDevice.StateCallback.html
-[5]: https://developer.android.com/reference/android/hardware/camera2/CameraCaptureSession.html
-[6]: https://developer.android.com/reference/android/hardware/camera2/CaptureRequest.html
-[7]: https://developer.android.com/reference/android/hardware/camera2/CameraCaptureSession.html#capture(android.hardware.camera2.CaptureRequest, android.hardware.camera2.CameraCaptureSession.CaptureCallback, android.os.Handler)
+- FPS display feature is not added yet. It can be added using OnFrameAvailableListener to
+  detect a new image frame and using elapsedRealTime() from SystemClock to measure the
+  time difference between successive frames to compute the frame rate.
+- Landscape mode is enforced in the manifest but reverts to portrait when app is resumed after
+  switching back from the another app activity.
+- App can be made more robust with some extra time.
 
 Pre-requisites
 --------------
@@ -49,7 +51,10 @@ Pre-requisites
 Screenshots
 -------------
 
-<img src="screenshots/main.png" height="400" alt="Screenshot"/> 
+<img src="screenshots/cam0.png" alt="Screenshot"/>
+<img src="screenshots/cam0-1-a.png" alt="Screenshot"/>
+<img src="screenshots/cam0-1-b.png" alt="Screenshot"/>
+<img src="screenshots/cam0-1-c.png" alt="Screenshot"/>
 
 Getting Started
 ---------------
