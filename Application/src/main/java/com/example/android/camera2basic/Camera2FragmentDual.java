@@ -3,6 +3,7 @@ package com.example.android.camera2basic;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -350,6 +351,44 @@ public class Camera2FragmentDual extends Fragment
         mBackgroundThread = new HandlerThread("camera_background_thread");
         mBackgroundThread.start();
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        closeCamera(CAM_0_ID);
+        closeCamera(CAM_1_ID);
+        stopBackgroundThread();
+        if (getActivity() != null) {
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+        }
+    }
+
+    private void closeCamera(String camId) {
+        Semaphore cameraLock = camId.equals("0") ? mCameraOpenCloseLock0 : mCameraOpenCloseLock1;
+        CameraCaptureSession captureSession = cameraCaptureSessionMap.get(camId);
+        CameraDevice cameraDevice = cameraDeviceMap.get(camId);
+        try {
+            cameraLock.acquire();
+            if (null != captureSession) {
+                captureSession.close();
+            }
+            if (null != cameraDevice) {
+                cameraDevice.close();
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted while trying to lock camera closing.", e);
+        } finally {
+            cameraLock.release();
+        }
+    }
+
+    private void stopBackgroundThread() {
+        if (mBackgroundHandler != null) {
+            mBackgroundThread.quitSafely();
+            mBackgroundThread = null;
+            mBackgroundHandler = null;
+        }
     }
 
 
