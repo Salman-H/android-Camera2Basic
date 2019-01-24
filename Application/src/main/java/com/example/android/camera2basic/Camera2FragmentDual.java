@@ -8,9 +8,11 @@ import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,6 +32,7 @@ import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -50,6 +53,8 @@ public class Camera2FragmentDual extends Fragment
     private Semaphore mCameraOpenCloseLock1 = new Semaphore(1);
 
     private Map<String, CameraDevice> cameraDeviceMap = new HashMap<>();
+    private Map<String, CaptureRequest.Builder> cameraCaptureRequestBuilderMap = new HashMap<>();
+    private Map<String, CameraCaptureSession> cameraCaptureSessionMap = new HashMap<>();
 
     private CameraManager mCameraManager;
     private Handler mBackgroundHandler;
@@ -277,6 +282,47 @@ public class Camera2FragmentDual extends Fragment
         }
         catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera opening.", e);
+        }
+    }
+
+    private void createCameraPreviewSession(final String camId)
+    {
+        final CameraDevice cameraDevice = cameraDeviceMap.get(camId);
+        SurfaceTexture surfaceTexture;
+        try {
+            surfaceTexture = camId.equals("0")
+                    ? mTextureView0.getSurfaceTexture() : mTextureView1.getSurfaceTexture();
+            assert surfaceTexture != null;
+            surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+            Surface previewSurface = new Surface(surfaceTexture);
+            cameraCaptureRequestBuilderMap.put(camId, cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW));
+            cameraCaptureRequestBuilderMap.get(camId).addTarget(previewSurface);
+
+            cameraDevice.createCaptureSession(Collections.singletonList(previewSurface),
+                    new CameraCaptureSession.StateCallback() {
+                        @Override
+                        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+                            if (cameraDevice == null) {
+                                return;
+                            }
+                            cameraCaptureSessionMap.put(camId, cameraCaptureSession); //mCaptureSession0 = cameraCaptureSession;
+                            try {
+                                // Finally, we start displaying the camera preview
+                                cameraCaptureSessionMap.get(camId).setRepeatingRequest(
+                                        cameraCaptureRequestBuilderMap.get(camId).build(),
+                                        null, mBackgroundHandler); // captureCallback?
+                            } catch (CameraAccessException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        @Override
+                        public void onConfigureFailed(
+                                @NonNull CameraCaptureSession cameraCaptureSession) {
+                            // onConfigureFailed()
+                        }
+                    }, mBackgroundHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
         }
     }
 
