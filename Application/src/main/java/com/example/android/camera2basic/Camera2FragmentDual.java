@@ -1,5 +1,6 @@
 package com.example.android.camera2basic;
 
+import android.Manifest;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraManager;
@@ -11,13 +12,25 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 
+
 public class Camera2FragmentDual extends Fragment {
+
+    private static final int REQUEST_CAMERA_PERMISSION = 0;
+    private static final String FRAGMENT_DIALOG = "dialog";
 
     // Hardcoded for now. Can be obtained from android.hardware.camera2.CameraCharacteristics
     private static final String CAM_0_ID = "0";
     private static final String CAM_1_ID = "1";
 
     private CameraManager mCameraManager;
+
+    private void requestCameraPermission() {
+        if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+            new Camera2BasicFragment.ConfirmationDialog().show(getChildFragmentManager(), FRAGMENT_DIALOG);
+        } else {
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+        }
+    }
 
     private TextureView.SurfaceTextureListener mSurfaceTextureListener0 = initSurfaceTextureListener(CAM_0_ID);
     private TextureView.SurfaceTextureListener mSurfaceTextureListener1 = initSurfaceTextureListener(CAM_1_ID);
