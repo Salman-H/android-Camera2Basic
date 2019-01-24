@@ -3,12 +3,14 @@ package com.example.android.camera2basic;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.TextureView;
@@ -17,13 +19,15 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextClock;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 
-public class Camera2FragmentDual extends Fragment {
+public class Camera2FragmentDual extends Fragment
+        implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final int REQUEST_CAMERA_PERMISSION = 0;
     private static final String FRAGMENT_DIALOG = "dialog";
@@ -158,4 +162,17 @@ public class Camera2FragmentDual extends Fragment {
         mTextureView0 = (TextureView)view.findViewById(R.id.texture0);
         mTextureView1 = (TextureView)view.findViewById(R.id.texture1);
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        for (int grantResult : grantResults) {
+            if (grantResult == PackageManager.PERMISSION_DENIED) {
+                Toast.makeText(getContext(), "Couldn't access camera or save picture",
+                        Toast.LENGTH_SHORT).show();
+                getActivity().finish();
+            }
+        }
+    }
+
 }
