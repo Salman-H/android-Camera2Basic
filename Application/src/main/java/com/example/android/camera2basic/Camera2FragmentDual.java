@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 
 
 public class Camera2FragmentDual extends Fragment
-        implements ActivityCompat.OnRequestPermissionsResultCallback {
+        implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final int REQUEST_CAMERA_PERMISSION = 0;
     private static final String FRAGMENT_DIALOG = "dialog";
@@ -391,5 +391,58 @@ public class Camera2FragmentDual extends Fragment
         }
     }
 
+    Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.cam0ToggleButton: {
+                final int status = (Integer)view.getTag();
+                if (status == 1) {  // cam0 already running, so only option is to stop
+                    freezePreview(CAM_0_ID);  // Since preview is stopped,
+                    mCam0Running = false;
+                    mCam0StatusView.setText("Off");
+                    mStartStopCam0.setText("Start");  // button should display start as option
+                    view.setTag(0);
+                }
+                else {  // cam0 already stopped, so only option is to start
+                    createCameraPreviewSession(CAM_0_ID);  // Since new preview session is started,
+                    mCam0Running = true;
+                    mCam0StatusView.setText("On");
+                    mStartStopCam0.setText("Stop");  // button should display stop as option
+                    view.setTag(1);
+                }
+                break;
+            }
+            case R.id.cam1ToggleButton: {
+                final int status = (Integer)view.getTag();
+                if (status == 1) {  // cam1 already running, so only option is to stop
+                    freezePreview(CAM_1_ID);  // Since preview is stopped,
+                    mCam1Running = false;
+                    mCam1StatusView.setText("Off");
+                    mStartStopCam1.setText("Start");  // button should display start as option
+                    view.setTag(0);
+                }
+                else {  // cam1 already stopped, so only option is to start
+                    createCameraPreviewSession(CAM_1_ID); // start new session
+                    mCam1Running = true;
+                    mCam1StatusView.setText("On");
+                    mStartStopCam1.setText("Stop");  // button should display stop as option
+                    view.setTag(1);
+                }
+                break;
+            }
+            case R.id.capture: {
+            }
+        }
+    }
+
+    private void freezePreview(String camId) {
+        try {
+            cameraCaptureSessionMap.get(camId).stopRepeating();
+        } catch (CameraAccessException cae) {
+            cae.printStackTrace();
+        } catch (IllegalStateException ise) {
+            ise.printStackTrace();
+        }
+    }
 
 }
