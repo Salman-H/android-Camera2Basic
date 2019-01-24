@@ -3,8 +3,10 @@ package com.example.android.camera2basic;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
@@ -15,7 +17,9 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.MediaActionSound;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
@@ -34,8 +38,14 @@ import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +56,9 @@ public class Camera2FragmentDual extends Fragment
 
     private static final int REQUEST_CAMERA_PERMISSION = 0;
     private static final String FRAGMENT_DIALOG = "dialog";
+
+    public static final int REQUEST_SEND_IMAGE = 1;
+    public static final int RESULT_PICTURE_SENT = 1;
 
     // Hardcoded for now. Can be obtained from android.hardware.camera2.CameraCharacteristics
     private static final String CAM_0_ID = "0";
@@ -77,6 +90,11 @@ public class Camera2FragmentDual extends Fragment
     private boolean mCam1Running;
 
     private Size mPreviewSize;
+
+    protected File imageFile;
+    private boolean isInPreviewMode;
+    MediaActionSound sound = new MediaActionSound();
+
 
     private void requestCameraPermission() {
         if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
@@ -193,6 +211,15 @@ public class Camera2FragmentDual extends Fragment
                 Toast.makeText(getContext(), "Couldn't access camera or save picture",
                         Toast.LENGTH_SHORT).show();
                 getActivity().finish();
+            }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_SEND_IMAGE) {
+            if (resultCode == RESULT_PICTURE_SENT) {
+                unlock();
             }
         }
     }
@@ -391,7 +418,7 @@ public class Camera2FragmentDual extends Fragment
         }
     }
 
-    Override
+    @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.cam0ToggleButton: {
@@ -431,6 +458,17 @@ public class Camera2FragmentDual extends Fragment
                 break;
             }
             case R.id.capture: {
+                // Only capture picture from live/running camera
+                if (mCam0Running && mCam1Running) {
+                    captureImage(CAM_0_ID);
+                    captureImage(CAM_1_ID);
+                }
+                else if (mCam0Running)
+                    captureImage(CAM_0_ID);
+                else if (mCam1Running)
+                    captureImage(CAM_1_ID);
+
+                break;
             }
         }
     }
@@ -444,5 +482,72 @@ public class Camera2FragmentDual extends Fragment
             ise.printStackTrace();
         }
     }
+
+    public void captureImage(String camId) {
+        try {
+            imageFile = createImageFile(createImageGallery());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        final Bitmap textureViewBitmap;
+
+        if (camId.equals("0")) textureViewBitmap = mTextureView0.getBitmap();
+        else textureViewBitmap = mTextureView1.getBitmap();
+
+        lock(textureViewBitmap);
+
+        mBackgroundHandler.post(new Runnable() {
+            FileOutputStream outputPhoto = null;
+
+            @Override
+            public void run() {
+                try {
+                    outputPhoto = new FileOutputStream(imageFile);
+                    textureViewBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputPhoto);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        if (outputPhoto != null) {
+                            outputPhoto.close();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    protected File createImageGallery() {
+        File storageDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File imageFolder = new File(storageDirectory, getResources().getString(R.string.app_name));
+        if (!imageFolder.exists()) {
+            imageFolder.mkdirs();
+        }
+        return imageFolder;
+    }
+
+    protected File createImageFile(File imageFolder) throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
+                Locale.getDefault()).format(new Date());
+        String imageFileName = "image_" + timeStamp + "_";
+        return File.createTempFile(imageFileName, ".jpg", imageFolder);
+    }
+
+    private void lock(Bitmap previewImage) {
+        isInPreviewMode = true;
+        sound.play(MediaActionSound.SHUTTER_CLICK);
+        Toast.makeText(getActivity(), "Saved", Toast.LENGTH_SHORT).show();
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private void unlock() {
+        imageFile.delete();
+        isInPreviewMode = false;
+    }
+
 
 }
