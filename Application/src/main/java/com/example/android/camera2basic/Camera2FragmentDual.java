@@ -14,6 +14,9 @@ import android.view.LayoutInflater;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextClock;
+import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +38,20 @@ public class Camera2FragmentDual extends Fragment {
     private Map<String, CameraDevice> cameraDeviceMap = new HashMap<>();
 
     private CameraManager mCameraManager;
+
+    private TextureView mTextureView0;
+    private TextureView mTextureView1;
+
+    private Button mStartStopCam0;
+    private Button mStartStopCam1;
+    private Button mCaptureButton;
+
+    private TextClock mDatetimeView;
+    private TextView mCam0StatusView;
+    private TextView mCam1StatusView;
+
+    private boolean mCam0Running;
+    private boolean mCam1Running;
 
     private void requestCameraPermission() {
         if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
@@ -72,7 +89,7 @@ public class Camera2FragmentDual extends Fragment {
 
     private CameraDevice.StateCallback stateCallback0 = initSateCallback(CAM_0_ID);
     private CameraDevice.StateCallback stateCallback1 = initSateCallback(CAM_1_ID);
-    
+
     private CameraDevice.StateCallback initSateCallback(final String camId) {
         final Semaphore camLock = camId.equals(CAM_0_ID)
                 ? mCameraOpenCloseLock0 : mCameraOpenCloseLock1;
@@ -116,5 +133,29 @@ public class Camera2FragmentDual extends Fragment {
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
+        mDatetimeView = view.findViewById(R.id.datetimeView);
+        mDatetimeView.setFormat24Hour("yyyy-MM-dd HH:mm:ss");
+
+        mStartStopCam0 = view.findViewById(R.id.cam0ToggleButton);
+        mStartStopCam0.setTag(1);
+        mCam0Running = true;
+        mStartStopCam0.setText("Stop");
+        mStartStopCam0.setOnClickListener(this);
+        mCam0StatusView = view.findViewById(R.id.cam0StatusView);
+        mCam0StatusView.setText("On");
+
+        mStartStopCam1 = view.findViewById(R.id.cam1ToggleButton);
+        mStartStopCam1.setTag(0);
+        mCam1Running = false;
+        mStartStopCam1.setText("Start");
+        mStartStopCam1.setOnClickListener(this);
+        mCam1StatusView = view.findViewById(R.id.cam1StatusView);
+        mCam1StatusView.setText("Off");
+
+        mCaptureButton = view.findViewById(R.id.capture);
+        mCaptureButton.setOnClickListener(this);
+
+        mTextureView0 = (TextureView)view.findViewById(R.id.texture0);
+        mTextureView1 = (TextureView)view.findViewById(R.id.texture1);
     }
 }
