@@ -16,6 +16,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -58,6 +59,7 @@ public class Camera2FragmentDual extends Fragment
 
     private CameraManager mCameraManager;
     private Handler mBackgroundHandler;
+    private HandlerThread mBackgroundThread;
 
     private TextureView mTextureView0;
     private TextureView mTextureView1;
@@ -325,5 +327,30 @@ public class Camera2FragmentDual extends Fragment
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        startBackgroundThread();
+
+        if (mTextureView0.isAvailable()) {
+            openCamera(CAM_0_ID);
+        } else {
+            mTextureView0.setSurfaceTextureListener(mSurfaceTextureListener0);
+        }
+
+        if (mTextureView1.isAvailable()) {
+            openCamera(CAM_1_ID);
+        } else {
+            mTextureView1.setSurfaceTextureListener(mSurfaceTextureListener1);
+        }
+    }
+
+    private void startBackgroundThread() {
+        mBackgroundThread = new HandlerThread("camera_background_thread");
+        mBackgroundThread.start();
+        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+    }
+
 
 }
