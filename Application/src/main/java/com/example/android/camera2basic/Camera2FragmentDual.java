@@ -1,3 +1,31 @@
+/*
+ * Displays images from 2 camera sensors using camera2 API. Allows both cameras
+ * to run and capture images simultaneously.
+ *
+ * Assumptions:
+ * o- The two cameras are front and back cameras on a smartphone with camera IDs 0 and 1.
+ *    (Ids can be extracted using android.hardware.camera2.CameraCharacteristics)
+ * o- App will only be used in landscape mode
+ * o- Saved pictures will only be viewed in landscape mode
+ * o- User has enabled 24 hour format in settings for live datetime to display in 24 hour format
+ * 0- App is only tested on a pixel 2 hardware device
+ *
+ * Notes:
+ * o- FPS display feature is not added yet. It can be added using OnFrameAvailableListener to
+ *    detect a new image frame and using elapsedRealTime() from SystemClock to measure the
+ *    time difference between successive frames to compute the frame rate.
+ * o- Landscape mode is enforced in the manifest but reverts to portrait when app is resumed after
+ *    switching back from the another app activity.
+ * o- App can be made more robust with some extra time.
+ *
+ * Attributions:
+ * o- https://github.com/googlesamples/android-Camera2Basic
+ * o- https://github.com/matdziu/collage
+ *
+ * @author Salman Hashmi (mail@salmanhashmi.me)
+ * @version 1.1
+ *
+ */
 package com.example.android.camera2basic;
 
 import android.Manifest;
@@ -50,7 +78,31 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * Displays images from 2 camera sensors using camera2 API. Allows both cameras
+ * to run and capture images simultaneously.
+ *
+ * Assumptions:
+ * o- The two cameras are front and back cameras on a smartphone with camera IDs 0 and 1.
+ *    (Ids can be extracted using android.hardware.camera2.CameraCharacteristics)
+ * o- App will only be used in landscape mode
+ * o- Saved pictures will only be viewed in landscape mode
+ *
+ * Notes:
+ * o- FPS display feature is not added yet. It can be added using OnFrameAvailableListener to
+ *    detect a new image frame and using elapsedRealTime() from SystemClock to measure the
+ *    time difference between successive frames to compute the frame rate.
+ * o- Landscape mode is enforced in the manifest but reverts to portrait when app is resumed after
+ *    switching back from the another app activity.
+ *
+ * Attributions:
+ * o- https://github.com/googlesamples/android-Camera2Basic
+ * o- https://github.com/matdziu/collage
+ *
+ * @author Salman Hashmi (mail@salmanhashmi.me)
+ * @version 1.1
+ *
+ */
 public class Camera2FragmentDual extends Fragment
         implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -64,15 +116,25 @@ public class Camera2FragmentDual extends Fragment
     private static final String CAM_0_ID = "0";
     private static final String CAM_1_ID = "1";
 
+    /** A {@link Semaphore} to prevent the app from exiting before closing the camera. */
     private Semaphore mCameraOpenCloseLock0 = new Semaphore(1);
     private Semaphore mCameraOpenCloseLock1 = new Semaphore(1);
 
+    /** ID and {@link CameraDevice} map of opened camera devices. */
     private Map<String, CameraDevice> cameraDeviceMap = new HashMap<>();
+
+    /** Camera ID and {@link CaptureRequest.Builder} for the camera preview. */
     private Map<String, CaptureRequest.Builder> cameraCaptureRequestBuilderMap = new HashMap<>();
+
+    /** Camera ID and {@link CameraCaptureSession } map for camera previews. */
     private Map<String, CameraCaptureSession> cameraCaptureSessionMap = new HashMap<>();
 
     private CameraManager mCameraManager;
+
+    /** A {@link Handler} for running tasks in the background. */
     private Handler mBackgroundHandler;
+
+    /** An additional thread for running tasks that shouldn't block the UI. */
     private HandlerThread mBackgroundThread;
 
     private TextureView mTextureView0;
@@ -107,6 +169,10 @@ public class Camera2FragmentDual extends Fragment
     private TextureView.SurfaceTextureListener mSurfaceTextureListener0 = initSurfaceTextureListener(CAM_0_ID);
     private TextureView.SurfaceTextureListener mSurfaceTextureListener1 = initSurfaceTextureListener(CAM_1_ID);
 
+    /**
+     * {@link TextureView.SurfaceTextureListener} handles several lifecycle events on a
+     * {@link TextureView}.
+     */
     private TextureView.SurfaceTextureListener initSurfaceTextureListener(final String camId) {
         return new TextureView.SurfaceTextureListener() {
             @Override
@@ -134,6 +200,9 @@ public class Camera2FragmentDual extends Fragment
     private CameraDevice.StateCallback mStateCallback0 = initSateCallback(CAM_0_ID);
     private CameraDevice.StateCallback mStateCallback1 = initSateCallback(CAM_1_ID);
 
+    /**
+     * {@link CameraDevice.StateCallback} is called when {@link CameraDevice} changes its state.
+     */
     private CameraDevice.StateCallback initSateCallback(final String camId) {
         final Semaphore camLock = camId.equals(CAM_0_ID)
                 ? mCameraOpenCloseLock0 : mCameraOpenCloseLock1;
@@ -163,7 +232,9 @@ public class Camera2FragmentDual extends Fragment
         };
     }
 
-
+    /**
+     * Returns new instance of Camera2FragmentDual
+     */
     public static Camera2FragmentDual newInstance() {
         return new Camera2FragmentDual();
     }
@@ -224,6 +295,12 @@ public class Camera2FragmentDual extends Fragment
         }
     }
 
+    /**
+     * Sets up member variables related to camera.
+     *
+     * @param width  The width of available size for camera preview
+     * @param height The height of available size for camera preview
+     */
     @SuppressWarnings("ConstantConditions")
     private void setUpCamera(String cameraId, int width, int height) {
         try {
@@ -244,6 +321,17 @@ public class Camera2FragmentDual extends Fragment
         }
     }
 
+    /**
+     * Given {@code outputSizes} of {@code Size}s supported by a camera, choose the smallest one that
+     * is at least as large as the respective texture view size, and that is at most as large as the
+     * respective max size, and whose aspect ratio matches with the specified value.
+     *
+     * @param width  The width of available size for camera preview
+     * @param height The height of available size for camera preview
+     *
+     * https://github.com/matdziu/collage/blob/master/app/src/main/java/pl/collage/camera/CameraFragment.java
+     *
+     */
     private Size chooseOptimalSize(Size[] outputSizes, int width, int height) {
         double preferredRatio = height / (double) width;
         Size currentOptimalSize = outputSizes[0];
@@ -259,6 +347,16 @@ public class Camera2FragmentDual extends Fragment
         return currentOptimalSize;
     }
 
+    /**
+     * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.
+     * This method should be called after the camera preview size is determined in
+     * setUpCameraOutputs and also the size of `mTextureView` is fixed.
+     *
+     * https://github.com/googlesamples/android-Camera2Basic
+     *
+     * @param viewWidth  The width of `mTextureView`
+     * @param viewHeight The height of `mTextureView`
+     */
     private void configureTransform(String camId, int viewWidth, int viewHeight) {
         TextureView textureView;
         textureView = camId.equals(CAM_0_ID) ? mTextureView0 : mTextureView1;
@@ -286,6 +384,9 @@ public class Camera2FragmentDual extends Fragment
         textureView.setTransform(matrix);
     }
 
+    /**
+     * Opens the camera specified by camId.
+     */
     private void openCamera(String camId) {
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -315,6 +416,13 @@ public class Camera2FragmentDual extends Fragment
         }
     }
 
+    /**
+     * Creates a new CameraCaptureSession for camera preview.
+     *
+     * Adapted from https://github.com/googlesamples/android-Camera2Basic
+     *
+     * @param camId  ID of the camera device to create a preview of
+     */
     private void createCameraPreviewSession(final String camId)
     {
         final CameraDevice cameraDevice = cameraDeviceMap.get(camId);
@@ -329,28 +437,28 @@ public class Camera2FragmentDual extends Fragment
             cameraCaptureRequestBuilderMap.get(camId).addTarget(previewSurface);
 
             cameraDevice.createCaptureSession(Collections.singletonList(previewSurface),
-                    new CameraCaptureSession.StateCallback() {
-                        @Override
-                        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                            if (cameraDevice == null) {
-                                return;
-                            }
-                            cameraCaptureSessionMap.put(camId, cameraCaptureSession); //mCaptureSession0 = cameraCaptureSession;
-                            try {
-                                // Finally, we start displaying the camera preview
-                                cameraCaptureSessionMap.get(camId).setRepeatingRequest(
-                                        cameraCaptureRequestBuilderMap.get(camId).build(),
-                                        null, mBackgroundHandler); // captureCallback?
-                            } catch (CameraAccessException e) {
-                                e.printStackTrace();
-                            }
+                new CameraCaptureSession.StateCallback() {
+                    @Override
+                    public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+                        if (cameraDevice == null) {
+                            return;
                         }
-                        @Override
-                        public void onConfigureFailed(
-                                @NonNull CameraCaptureSession cameraCaptureSession) {
-                            // onConfigureFailed()
+                        cameraCaptureSessionMap.put(camId, cameraCaptureSession); //mCaptureSession0 = cameraCaptureSession;
+                        try {
+                            // Finally, we start displaying the camera preview
+                            cameraCaptureSessionMap.get(camId).setRepeatingRequest(
+                                    cameraCaptureRequestBuilderMap.get(camId).build(),
+                                    null, mBackgroundHandler); // captureCallback?
+                        } catch (CameraAccessException e) {
+                            e.printStackTrace();
                         }
-                    }, mBackgroundHandler);
+                    }
+                    @Override
+                    public void onConfigureFailed(
+                            @NonNull CameraCaptureSession cameraCaptureSession) {
+                        // onConfigureFailed()
+                    }
+                }, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -374,6 +482,9 @@ public class Camera2FragmentDual extends Fragment
         }
     }
 
+    /**
+     * Starts a background thread and its {@link Handler}.
+     */
     private void startBackgroundThread() {
         mBackgroundThread = new HandlerThread("camera_background_thread");
         mBackgroundThread.start();
@@ -391,6 +502,9 @@ public class Camera2FragmentDual extends Fragment
         }
     }
 
+    /**
+     * Closes the {@link CameraDevice} specified by camId.
+     */
     private void closeCamera(String camId) {
         Semaphore cameraLock = camId.equals("0") ? mCameraOpenCloseLock0 : mCameraOpenCloseLock1;
         CameraCaptureSession captureSession = cameraCaptureSessionMap.get(camId);
@@ -410,6 +524,9 @@ public class Camera2FragmentDual extends Fragment
         }
     }
 
+    /**
+     * Stops the background thread and its {@link Handler}.
+     */
     private void stopBackgroundThread() {
         if (mBackgroundHandler != null) {
             mBackgroundThread.quitSafely();
@@ -483,6 +600,11 @@ public class Camera2FragmentDual extends Fragment
         }
     }
 
+    /**
+     * Captures image from camera specified by camId and saves to Picture gallery.
+     *
+     * https://github.com/matdziu/collage/blob/master/app/src/main/java/pl/collage/camera/CameraFragment.java
+     */
     public void captureImage(String camId) {
         try {
             imageFile = createImageFile(createImageGallery());
